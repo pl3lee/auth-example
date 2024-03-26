@@ -1,12 +1,13 @@
+"use client"
+
 const Register = () => {
+    const handleLogout = () => {
+        window.location.href = "http://localhost:3001/logout";
+    };
     return (
         <div>
             <h1>Register</h1>
-            <form>
-                <input type="email" placeholder="Email" />
-                <input type="password" placeholder="Password" />
-                <button>Register</button>
-            </form>
+            <button onClick={handleLogout}>Logout</button>
         </div>
     )
 }

@@ -1,39 +1,35 @@
 import express from 'express';
 import cors from "cors";
-import { authRouter } from "./routes/auth";
-import { Pool } from "pg";
 import dotenv from "dotenv";
+import { auth, requiresAuth } from 'express-openid-connect';
 
 export const app = express();
 const port = 3001;
 dotenv.config();
 
-export const pool = new Pool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: parseInt(process.env.DB_PORT || "5432")
-});
 
-const connectToDB = async () => {
-  try {
-    await pool.connect();
-  } catch (err) {
-    console.log(err);
-  }
+const config = {
+  authRequired: false,
+  auth0Logout: true,
+  secret: 'a long, randomly-generated string stored in env',
+  baseURL: 'http://localhost:3000',
+  clientID: 'bUVwgaCUGWYKQUh9syUJqknsE6i2kWMJ',
+  issuerBaseURL: 'https://pl3lee.us.auth0.com',
 };
-connectToDB();
-
 
 app.use(express.json());
 app.use(cors());
+app.use(auth(config));
 
-app.use("/auth", authRouter);
 
-app.get('/', (req, res) => {
-  res.send('Hello, TypeScript with Express!');
+app.get('/api', (req, res) => {
+  res.send(req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out');
 });
+
+app.get('/profile', requiresAuth(), (req, res) => {
+  res.send(JSON.stringify(req.oidc.user));
+});
+
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

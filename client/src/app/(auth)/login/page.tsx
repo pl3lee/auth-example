@@ -1,12 +1,13 @@
+"use client"
+
 const Login = () => {
+    const handleLogin = () => {
+        window.location.href = "http://localhost:3001/login";
+    };
     return (
         <div>
             <h1>Login</h1>
-            <form>
-                <input type="email" placeholder="Email" />
-                <input type="password" placeholder="Password" />
-                <button>Login</button>
-            </form>
+            <button onClick={handleLogin}>Login</button>
         </div>
     )
 }
