@@ -16,6 +16,7 @@ export default function Home() {
         if (res.ok) {
           return res.json();
         }
+        setSecretData("")
         throw new Error("Not authenticated");
       })
       .then((data) => {

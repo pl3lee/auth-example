@@ -10,6 +10,7 @@ import { Schema } from 'mongoose';
 import { Document } from 'mongoose';
 import { Strategy as BearerStrategy } from "passport-http-bearer";
 import { BasicStrategy } from "passport-http";
+import { ensureAuthenticated } from './middlewares/ensureAuthenticated';
 interface IUser extends Document {
   username: string;
   password: string;
@@ -99,13 +100,35 @@ app.post("/register/password",
     }
   })
 
-app.get("/secretdata", passport.authenticate('basic', { session: false }),
+app.post("/logout", (req, res, next) => {
+  req.logout(function (err) {
+    if (err) { return next(err); }
+    // Clear the session cookie
+    req.session.destroy(function(err) {
+      if (err) {
+        return next(err);
+      }
+      // Clear the cookie on the client-side by setting its expiration to the past
+      res.clearCookie('connect.sid', { path: '/' });
+      return res.send("Logged out");
+    });
+  })
+})
+
+app.get("/secretdata", ensureAuthenticated,
   (req, res) => {
     res.json({
       secretData: "This is some secret data"
     })
   })
 
+app.get("/loggedin", ensureAuthenticated,
+  (req, res) => {
+    res.json({
+      loggedIn: true
+    })
+  }
+)
 
 passport.serializeUser((user: any, cb) => {
   process.nextTick(() => {
