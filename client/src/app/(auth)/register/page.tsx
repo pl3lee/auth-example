@@ -21,6 +21,8 @@ const Register = () => {
                 if (res.ok) {
                     return res.json();
                 }
+                console.log(res)
+                throw new Error(res.statusText);
             })
             .then((data) => {
                 console.log(data);

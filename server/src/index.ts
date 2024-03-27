@@ -9,11 +9,13 @@ import mongoose from 'mongoose';
 import { Schema } from 'mongoose';
 import { Document } from 'mongoose';
 import { Strategy as BearerStrategy } from "passport-http-bearer";
-import { BasicStrategy } from "passport-http";
 import { ensureAuthenticated } from './middlewares/ensureAuthenticated';
+import bcrypt from "bcrypt";
+
+
 interface IUser extends Document {
   username: string;
-  password: string;
+  hashed_password: string;
 }
 
 const mongoDb = "mongodb://root:password@localhost:27017/auth-example?authSource=admin";
@@ -27,7 +29,7 @@ const User = mongoose.model(
   "User",
   new Schema<IUser>({
     username: { type: String, required: true },
-    password: { type: String, required: true }
+    hashed_password: { type: String, required: true },
   })
 );
 
@@ -50,32 +52,18 @@ passport.use(
       if (!user) {
         return cb(null, false, { message: "Incorrect username" });
       };
-      if (user.password !== password) {
-        return cb(null, false, { message: "Incorrect username or password" });
-      };
+
+      // checks hash password
+      const match = await bcrypt.compare(password, user.hashed_password);
+      if (!match) {
+        return cb(null, false, { message: "Incorrect username or password" })
+      }
       return cb(null, user);
     } catch (err) {
       return cb(err);
     };
   })
 );
-
-passport.use(new BasicStrategy(
-  async (username, password, cb) => {
-    try {
-      const user = await User.findOne({ username: username });
-      if (!user) {
-        return cb(null, false);
-      };
-      if (user.password !== password) {
-        return cb(null, false);
-      }
-      return cb(null, user);
-    } catch (err) {
-      return cb(err);
-    }
-  }
-));
 
 
 app.post("/login/password",
@@ -85,19 +73,30 @@ app.post("/login/password",
   }
 );
 
-app.post("/register/password",
-  async (req, res, next) => {
+app.post("/register/password", async (req, res, next) => {
     const { username, password } = req.body;
-    const user = new User({ username, password });
-    try {
-      await user.save();
-      req.login(user, function(err) {
-        if (err) { return next(err); }
-        return res.json(user);
-      });
-    } catch (err) {
-      res.status(500).send(err);
+
+    const userExists = await User.findOne({ username})
+    if (userExists) {
+      res.statusMessage = "User already exists"
+      return res.status(400).send("User already exists")
     }
+
+    bcrypt.hash(password, 10, async (err, hashedPassword) => {
+      if (err) {
+        return next(err);
+      }
+      const user = new User({ username, hashed_password: hashedPassword });
+      try {
+        await user.save();
+        req.login(user, function (err) {
+          if (err) { return next(err); }
+          return res.json(user);
+        });
+      } catch (err) {
+        res.status(500).send(err);
+      }
+    })
   })
 
 app.post("/logout", (req, res, next) => {
