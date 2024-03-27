@@ -9,7 +9,8 @@ const Register = () => {
     const [password, setPassword] = useState("");
     const handleRegister = (event) => {
         event.preventDefault();
-        fetch("http://localhost:3001/sign-up", {
+        fetch("http://localhost:3001/register/password", {
+            credentials: "include",
             method: "POST",
             body: JSON.stringify({ username, password }),
             headers: {
@@ -17,12 +18,15 @@ const Register = () => {
             },
         })
             .then((res) => {
-                res.json()
-                router.push("/login")
+                if (res.ok) {
+                    return res.json();
+                }
             })
             .then((data) => {
                 console.log(data);
-            });
+            }).catch((error) => {
+                console.error(error);
+            })
     };
     return (
         <div>

@@ -8,7 +8,8 @@ import { Strategy as LocalStrategy } from "passport-local";
 import mongoose from 'mongoose';
 import { Schema } from 'mongoose';
 import { Document } from 'mongoose';
-
+import { Strategy as BearerStrategy } from "passport-http-bearer";
+import { BasicStrategy } from "passport-http";
 interface IUser extends Document {
   username: string;
   password: string;
@@ -36,62 +37,91 @@ dotenv.config();
 
 
 
-app.use(session({ secret: "cats", resave: false, saveUninitialized: true }));
+app.use(session({ secret: "cats", resave: false, saveUninitialized: false, cookie: { httpOnly: true } }));
 app.use(passport.session());
-app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 
 passport.use(
-  new LocalStrategy(async (username, password, done) => {
+  new LocalStrategy(async (username, password, cb) => {
     try {
       const user = await User.findOne({ username: username });
       if (!user) {
-        return done(null, false, { message: "Incorrect username" });
+        return cb(null, false, { message: "Incorrect username" });
       };
       if (user.password !== password) {
-        return done(null, false, { message: "Incorrect password" });
+        return cb(null, false, { message: "Incorrect username or password" });
       };
-      return done(null, user);
-    } catch(err) {
-      return done(err);
+      return cb(null, user);
+    } catch (err) {
+      return cb(err);
     };
   })
 );
 
-passport.serializeUser((user: any, done) => {
-  done(null, user.id);
-});
+passport.use(new BasicStrategy(
+  async (username, password, cb) => {
+    try {
+      const user = await User.findOne({ username: username });
+      if (!user) {
+        return cb(null, false);
+      };
+      if (user.password !== password) {
+        return cb(null, false);
+      }
+      return cb(null, user);
+    } catch (err) {
+      return cb(err);
+    }
+  }
+));
 
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findById(id) as IUser;
-    done(null, user);
-  } catch(err) {
-    done(err);
-  };
-});
 
-
-
-
-app.post("/sign-up", async (req, res, next) => {
-  try {
-    const user = new User({
-      username: req.body.username,
-      password: req.body.password
-    });
-    const result = await user.save();
-    res.json(result);
-  } catch(err) {
-    return next(err);
-  };
-});
-
-app.post("/login", passport.authenticate("local"), (req, res) => {
+app.post("/login/password",
+  passport.authenticate('local', { failureMessage: true }),
+  (req, res) => {
     res.json(req.user);
   }
 );
+
+app.post("/register/password",
+  async (req, res, next) => {
+    const { username, password } = req.body;
+    const user = new User({ username, password });
+    try {
+      await user.save();
+      req.login(user, function(err) {
+        if (err) { return next(err); }
+        return res.json(user);
+      });
+    } catch (err) {
+      res.status(500).send(err);
+    }
+  })
+
+app.get("/secretdata", passport.authenticate('basic', { session: false }),
+  (req, res) => {
+    res.json({
+      secretData: "This is some secret data"
+    })
+  })
+
+
+passport.serializeUser((user: any, cb) => {
+  process.nextTick(() => {
+    return cb(null, {
+      id: user.id,
+      username: user.username
+    })
+  })
+});
+
+passport.deserializeUser((user: any, cb) => {
+  process.nextTick(function () {
+    return cb(null, user);
+  });
+});
+
 
 
 app.listen(port, () => {

@@ -7,7 +7,8 @@ const Login = () => {
     const [password, setPassword] = useState("");
     const handleLogin = (event) => {
         event.preventDefault();
-        fetch("http://localhost:3001/login", {
+        fetch("http://localhost:3001/login/password", {
+            credentials: "include",
             method: "POST",
             body: JSON.stringify({ username, password }),
             headers: {
@@ -15,12 +16,16 @@ const Login = () => {
             },
         })
             .then((res) => {
-                res.json()
-                console.log(res)
+                if (res.ok) {
+                    return res.json();
+                }
+                throw new Error("Invalid username or password");
             })
             .then((data) => {
                 console.log(data);
-            });
+            }).catch((error) => {
+                console.error(error);
+            })
     };
     return (
         <div>
