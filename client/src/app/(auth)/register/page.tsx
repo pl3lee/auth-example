@@ -24,6 +24,8 @@ const Register = () => {
             })
             .then((data) => {
                 console.log(data);
+                router.push("/")
+                router.refresh()
             }).catch((error) => {
                 console.error(error);
             })
@@ -31,12 +33,12 @@ const Register = () => {
     return (
         <div>
             <h1>Register</h1>
-            <form action="" method="POST">
+            <form onSubmit={handleRegister}>
                 <label >Username</label>
                 <input placeholder="username" type="text" onChange={(e) => setUsername(e.target.value)} value={username} />
                 <label >Password</label>
                 <input type="password" onChange={(e) => setPassword(e.target.value)} value={password} />
-                <button onClick={handleRegister}>Register</button>
+                <button type="submit">Register</button>
             </form>
         </div>
     )

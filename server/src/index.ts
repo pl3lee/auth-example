@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request } from 'express';
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
@@ -122,11 +122,12 @@ app.get("/secretdata", ensureAuthenticated,
     })
   })
 
-app.get("/loggedin", ensureAuthenticated,
+app.get("/username", ensureAuthenticated,
   (req, res) => {
-    res.json({
-      loggedIn: true
-    })
+    const { user } = req;
+    res.json(
+      user
+    )
   }
 )
 

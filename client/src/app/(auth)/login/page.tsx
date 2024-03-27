@@ -1,8 +1,10 @@
 "use client"
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const Login = () => {
+    const router = useRouter();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const handleLogin = (event) => {
@@ -23,6 +25,8 @@ const Login = () => {
             })
             .then((data) => {
                 console.log(data);
+                router.push("/")
+                router.refresh()
             }).catch((error) => {
                 console.error(error);
             })
@@ -30,12 +34,12 @@ const Login = () => {
     return (
         <div>
             <h1>Login</h1>
-            <form action="" method="POST">
+            <form onSubmit={handleLogin}>
                 <label >Username</label>
                 <input placeholder="username" type="text" onChange={(e) => setUsername(e.target.value)} value={username} />
                 <label >Password</label>
                 <input type="password" onChange={(e) => setPassword(e.target.value)} value={password} />
-                <button onClick={handleLogin}>Login</button>
+                <button type="submit">Login</button>
             </form>
         </div>
     )

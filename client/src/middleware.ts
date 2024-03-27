@@ -1,21 +1,22 @@
 import { headers } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
+import { getUser } from './lib/getUser';
 
 export async function middleware(req: NextRequest) {
-    try {
-        const response = await fetch("http://localhost:3001/loggedin", {
-            credentials: "include",
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            },
-        })
-
-        const data = await response.json(); // Now 'data' holds the resolved JSON object
-        console.log(data);
-    } catch (error) {
-        console.log(error)
+    if (req.nextUrl.pathname.startsWith('/protected')) {
+        try {
+            const user = await getUser();
+            if (user.id !== '') {
+                return NextResponse.next();
+            } else {
+                return NextResponse.redirect(new URL('/login', req.url));
+            }
+        } catch (error) {
+            console.error('Error checking login status from middleware:', error);
+            return NextResponse.redirect(new URL('/login', req.url));
+        }
     }
+    
     
 
 }

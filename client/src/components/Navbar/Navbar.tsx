@@ -1,35 +1,29 @@
-"use client"
-
 import Link from "next/link"
 import styles from "./Navbar.module.scss"
-export const Navbar = () => {
+import { LogoutButton } from "./LogoutButton"
+import { getUser } from "@/lib/getUser"
+import { revalidatePath } from "next/cache"
+
+
+
+export const Navbar = async () => {
+    const user = await getUser();
+    revalidatePath('/', 'layout');
     return (
         <nav className={styles.root}>
             <Link href="/">
                 Home
             </Link>
-            <Link href="/protected">
+            {user.id && <Link href="/protected">
                 Protected Route
-            </Link>
-            <Link href="/login">
+            </Link>}
+            {!user.id && <Link href="/login">
                 Login
-            </Link>
-            <Link href="/register">
+            </Link>}
+            {!user.id && <Link href="/register">
                 Register
-            </Link>
-            <button onClick={() => fetch("http://localhost:3001/logout", {
-                credentials: "include",
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            }).then((res) => {
-                if (res.ok) {
-                    console.log("Logged out");
-                }
-            })}>
-                Logout
-            </button>
+            </Link>}
+            {user.id && <LogoutButton />}
         </nav>
     )
 }
