@@ -1,0 +1,20 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1714065206224,
+      "tag": "0000_sleepy_steve_rogers",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1714065845167,
+      "tag": "0001_nostalgic_wendell_vaughn",
+      "breakpoints": true
+    }
+  ]
+}
