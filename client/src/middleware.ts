@@ -1,11 +1,11 @@
 import { headers } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
-import { getUser } from './lib/getUser';
+import { validateRequest } from './lib/validateRequest';
 
 export async function middleware(req: NextRequest) {
     if (req.nextUrl.pathname.startsWith('/protected')) {
         try {
-            const user = await getUser();
+            const user = await validateRequest()
             if (user.id !== '') {
                 return NextResponse.next();
             } else {

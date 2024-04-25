@@ -1,12 +1,12 @@
 import Link from "next/link"
 import styles from "./Navbar.module.scss"
 import { LogoutButton } from "./LogoutButton"
-import { getUser } from "@/lib/getUser"
+import { validateRequest } from "@/lib/validateRequest"
 
 
 
 export const Navbar = async () => {
-    const user = await getUser();
+    const user = await validateRequest()
     return (
         <nav className={styles.root}>
             <Link href="/">

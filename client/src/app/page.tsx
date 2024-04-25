@@ -20,7 +20,28 @@ export default function Home() {
         throw new Error("Not authenticated");
       })
       .then((data) => {
-        setSecretData(data.secretData)
+        setSecretData(data.message)
+      }).catch((error) => {
+        console.error(error);
+      })
+  }
+
+  const validate = () => {
+    fetch("http://localhost:3001/validate", {
+      credentials: "include",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+        throw new Error("Not authenticated");
+      })
+      .then((data) => {
+        console.log(data)
       }).catch((error) => {
         console.error(error);
       })
@@ -37,6 +58,7 @@ export default function Home() {
       <p>Below is a button that will fetch some data that is only accessible if the user is logged in.</p>
       <button onClick={fetchSecret}>Fetch secret</button>
       <p>{secretData}</p>
+      <button onClick={validate}>Validate</button>
     </div>
   );
 }
